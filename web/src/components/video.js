@@ -21,11 +21,11 @@ class Video extends Component {
   componentWillReceiveProps(nextProps) {
 
     // console.log('1. nextProps', this.props.showMuteControls, nextProps.videoStream && nextProps.videoStream.getTracks())
-    console.log('1', this.props.videoType, nextProps.videoStream)
+    // console.log('1', this.props.videoType, nextProps.videoStream)
 
     // This is done only once
     if (nextProps.videoStream && nextProps.videoStream !== this.props.videoStream) {
-    // if (!this.props.videoStream) {
+      // if (!this.props.videoStream) {
       console.log('2', this.props.videoType, nextProps.videoStream)
       this.video.srcObject = nextProps.videoStream
     }
@@ -68,7 +68,7 @@ class Video extends Component {
     const stream = this.video.srcObject.getTracks().filter(track => track.kind === 'audio')
     this.setState(prevState => {
       if (stream) stream[0].enabled = !prevState.mic
-      return {mic: !prevState.mic}
+      return { mic: !prevState.mic }
     })
   }
 
@@ -76,7 +76,7 @@ class Video extends Component {
     const stream = this.video.srcObject.getTracks().filter(track => track.kind === 'video')
     this.setState(prevState => {
       if (stream) stream[0].enabled = !prevState.camera
-      return {camera: !prevState.camera}
+      return { camera: !prevState.camera }
     })
   }
 
@@ -90,7 +90,7 @@ class Video extends Component {
 
     return (
       <div
-        style={{ ...this.props.frameStyle,  }}
+        style={{ ...this.props.frameStyle, }}
       >
         {/* <audio id={this.props.id} muted={this.props.muted} ref={ (ref) => {this.video = ref }}></audio> */}
         <video
@@ -102,7 +102,7 @@ class Video extends Component {
             ...this.props.videoStyles,
           }}
           // ref={ this.props.videoRef }
-          ref={ (ref) => {this.video = ref }}
+          ref={(ref) => { this.video = ref }}
         ></video>
         {muteControls}
       </div>

@@ -27,7 +27,7 @@ const Chat = props => {
   const handleSubmit = event => {
     if (message === '') return
     event.preventDefault();
-    sendMessage({type:'text', message: { id: user.uid, sender: { uid: user.uid, }, data: { text: message } }})
+    sendMessage({ type: 'text', message: { id: user.uid, sender: { uid: user.uid, }, data: { text: message } } })
     setMessage('')
   };
 
@@ -45,24 +45,24 @@ const Chat = props => {
         <div className="message"> {message.data.text}</div>
       </div>
     ) || (
-      <div className="msg">
-        <p>{message.sender.uid}</p>
-        <img
-          onClick={() => {
-            setImageZoom(true)
-            setSelectedImage(message.data)
-          }}
-          className="message"
-          style={{
-            width: 200,
-            // height: 100
-            cursor: 'pointer',
-          }}
-          src={message.data} />
-      </div>
-    )
+        <div className="msg">
+          <p>{message.sender.uid}</p>
+          <img
+            onClick={() => {
+              setImageZoom(true)
+              setSelectedImage(message.data)
+            }}
+            className="message"
+            style={{
+              width: 200,
+              // height: 100
+              cursor: 'pointer',
+            }}
+            src={message.data} />
+        </div>
+      )
 
-    return (<li className={userType} >{ msgDiv }</li>)
+    return (<li className={userType} >{msgDiv}</li>)
 
   }
 
@@ -96,7 +96,7 @@ const Chat = props => {
         bottom: 140,
         width: 350,
         // height: 650,
-    }}>
+      }}>
         <ul className="chat" id="chatList">
           {props.messages.map(data => (
             <div key={data.id}>
@@ -134,8 +134,8 @@ const Chat = props => {
           </div>
         </DragDrop>
       </div>
-      </div>
-    )
+    </div>
+  )
 }
 
 export default Chat
