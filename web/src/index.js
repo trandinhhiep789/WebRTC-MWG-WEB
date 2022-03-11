@@ -7,10 +7,20 @@ import CustomRouter from "./Util/CustomRouter";
 import { history } from "./Util/history";
 import * as serviceWorker from './serviceWorker';
 
+// Cấu hình redux
+import { applyMiddleware, createStore } from "redux";
+import { Provider } from "react-redux";
+import { rootReducer } from "./redux/reducer/rootReducer";
+import reduxThunk from "redux-thunk";
+
+const store = createStore(rootReducer, applyMiddleware(reduxThunk));
+
 ReactDOM.render(
     <React.StrictMode>
         <CustomRouter history={history}>
-            <App />
+            <Provider store={store}>
+                <App />
+            </Provider>
         </CustomRouter>
     </React.StrictMode>, document.getElementById('root'));
 

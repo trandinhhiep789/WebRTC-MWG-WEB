@@ -53,16 +53,22 @@ io.listen(server)
 
 // default namespace
 io.on('connection', socket => {
-  console.log('connected', socket.id)
 })
 
 // https://www.tutorialspoint.com/socket.io/socket.io_namespaces.htm
 const peersOnlineUser = io.of('/webrtcPeerOnlineUser')
 
 peersOnlineUser.on('connection', socket => {
+  console.log("myId: ", socket.id)
+
   socket.emit("myId", (socket.id))
   socket.on("addUser", (name) => {
     addUser({ id: socket.id, name: name })
+    peersOnlineUser.emit("getUserOnline", userList)
+  })
+
+  // lay danh sach user online cho trang roomcalling
+  socket.on("getUserOnline", () => {
     peersOnlineUser.emit("getUserOnline", userList)
   })
 
@@ -90,6 +96,7 @@ peers.on('connection', socket => {
 
   const room = socket.handshake.query.room
   console.log("socket.handshake.query.room", socket.handshake.query.room)
+  console.log("socket.id", socket.id)
 
   rooms[room] = rooms[room] && rooms[room].set(socket.id, socket) || (new Map()).set(socket.id, socket)
   messages[room] = messages[room] || []
@@ -107,7 +114,6 @@ peers.on('connection', socket => {
       // if (socketID !== socket.id) {
       _socket.emit('joined-peers', {
         peerCount: rooms[room].size, //connectedPeers.size,
-        userOnline: rooms
       })
       // }
     }
@@ -119,7 +125,7 @@ peers.on('connection', socket => {
     for (const [_socketID, _socket] of _connectedPeers.entries()) {
       _socket.emit('peer-disconnected', {
         peerCount: rooms[room].size,
-        socketID
+        socketID,
       })
     }
   }

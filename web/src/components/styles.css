@@ -302,3 +302,16 @@ input.textarea {
   justify-content:space-between;
   box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
 }
+
+.listUserOnline{
+  display: flex;
+  justify-content: space-around;
+  padding: 0 10px
+}
+
+/* Mobie */
+@media (max-width: 740px){
+	.listUserOnline{
+    display: block;
+  }
+}

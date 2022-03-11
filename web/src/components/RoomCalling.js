@@ -1,13 +1,15 @@
 import React, { Component } from 'react';
+import { Modal, Button, Avatar, Input } from 'antd';
+import { UserAddOutlined, PlusOutlined } from '@ant-design/icons';
 
 import io from 'socket.io-client'
 
 import Video from '../components/video'
 import Videos from '../components/videos'
-
 import Chat from '../components/chat'
-
 import Draggable from '../components/draggable'
+
+import { connect } from 'react-redux'
 
 class RoomCalling extends Component {
     constructor(props) {
@@ -39,18 +41,26 @@ class RoomCalling extends Component {
             },
 
             messages: [],
+            userOnline: [],
             sendChannels: [],
             disconnected: false,
+            isModalVisible: false,
+
+            listUserOnline: []
         }
 
         // DONT FORGET TO CHANGE TO YOUR URL
         this.serviceIP = 'http://localhost:8082/webrtcPeer'
+        // this.serviceIP = 'https://api-webrtc-mwg.herokuapp.com/webrtcPeer'
+
+        this.serviceIPInvite = 'http://localhost:8082/webrtcPeerOnlineUser'
 
         // https://reactjs.org/docs/refs-and-the-dom.html
         // this.localVideoref = React.createRef()
         // this.remoteVideoref = React.createRef()
 
         this.socket = null
+        this.socketInvite = null
         // this.candidates = []
     }
 
@@ -223,7 +233,6 @@ class RoomCalling extends Component {
         )
 
         this.socket.on('connection-success', data => {
-
             this.getLocalStream()
 
             // console.log(data.success)
@@ -236,7 +245,6 @@ class RoomCalling extends Component {
         })
 
         this.socket.on('joined-peers', data => {
-
             this.setState({
                 status: data.peerCount > 1 ? `Total Connected Peers to room ${window.location.pathname}: ${data.peerCount}` : 'Đang gọi . . .'
             })
@@ -407,7 +415,6 @@ class RoomCalling extends Component {
             if (pc)
                 pc.addIceCandidate(new RTCIceCandidate(data.candidate))
         })
-
     }
 
     // ************************************* //
@@ -431,6 +438,46 @@ class RoomCalling extends Component {
     // ************************************* //
     stopTracks = (stream) => {
         stream.getTracks().forEach(track => track.stop())
+    }
+
+    inviteUser = (id) => {
+
+        this.socketInvite = io.connect(
+            this.serviceIPInvite,
+            {
+                path: '/io/webrtc',
+                query: {
+                    room: window.location.pathname,
+                }
+            }
+        )
+
+        this.socketInvite.emit('sendLinkToCall', {
+            senderId: '123123',
+            receiverId: id,
+            link: window.location.pathname.substring(1, window.location.pathname.length)
+        })
+    }
+
+    loadUserOnline = () => {
+        this.setState({ isModalVisible: true })
+        this.socketInvite = io.connect(
+            this.serviceIPInvite,
+            {
+                path: '/io/webrtc',
+                query: {
+                    room: window.location.pathname,
+                }
+            }
+        )
+        this.socketInvite.emit('getUserOnline')
+
+        this.socketInvite.on("getUserOnline", userList => {
+            console.log(this.props.myName)
+            console.log(this.props.myName.userInfo)
+            userList = userList.filter((user) => user.name !== this.props.myName.userInfo)
+            this.setState({ listUserOnline: userList })
+        })
     }
 
     render() {
@@ -459,7 +506,6 @@ class RoomCalling extends Component {
         }
 
         const statusText = <div style={{ color: 'yellow', padding: 5 }}>{status}</div>
-
         return (
             <div>
                 <Draggable style={{
@@ -489,13 +535,49 @@ class RoomCalling extends Component {
                     zIndex: 3,
                     position: 'absolute'
                 }}>
-                    <i onClick={(e) => { this.setState({ disconnected: true }) }} style={{ cursor: 'pointer', paddingLeft: 15, color: 'red' }} class='material-icons'>highlight_off</i>
+                    <i onClick={(e) => { this.setState({ disconnected: true }) }} style={{ cursor: 'pointer', paddingLeft: 15, color: 'red' }} className='material-icons'>highlight_off</i>
                     <div style={{
                         margin: 10,
                         backgroundColor: '#cdc4ff4f',
                         padding: 10,
                         borderRadius: 5,
-                    }}>{statusText}</div>
+                    }}>
+                        {statusText}
+                        <Button icon={<UserAddOutlined />} type="primary" onClick={() => this.loadUserOnline()}>
+                            Mời thêm người
+                        </Button>
+                        <Modal
+                            title="Danh sách người dùng online"
+                            visible={this.state.isModalVisible}
+                            onOk={() => this.setState({ isModalVisible: false })}
+                            onCancel={() => this.setState({ isModalVisible: false })}
+                        >
+
+                            <Input.Search placeholder="Tìm kiếm" onSearch={value => console.log(value)} style={{ width: "100%" }} /><br /><br />
+                            {this.state.listUserOnline.map((user, i) =>
+                                <div key={i} style={{ cursor: 'pointer' }} className="bgGlass">
+                                    <div style={{ display: 'flex' }}>
+                                        <div style={{ position: 'relative' }}>
+                                            <Avatar style={{
+                                                color: '#ffce54',
+                                                backgroundColor: '#1d6f5a',
+                                            }}>
+                                                {user.name[0]}
+                                            </Avatar>
+                                            <div style={{ position: "absolute", bottom: "0px", right: "-6px", width: '16px', height: '16px', backgroundColor: '#fff', borderRadius: "50%", display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                                <div style={{ width: '10px', height: '10px', backgroundColor: 'green', borderRadius: "50%" }}></div>
+                                            </div>
+                                        </div>&emsp;
+                                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>{user.name}</div>
+                                    </div>
+                                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                        <Button icon={<PlusOutlined />} type="primary" onClick={() => this.inviteUser(user.id)}></Button>
+                                    </div>
+                                </div>
+                            )
+                            }
+                        </Modal>
+                    </div>
                 </div>
                 <div>
                     <Videos
@@ -525,4 +607,16 @@ class RoomCalling extends Component {
     }
 }
 
-export default RoomCalling;
+function mapStateToProps(state) {
+    return {
+        myName: state.stateListUserOnline,
+    }
+}
+function mapDispatchToProps(dispatch) {
+    return {}
+}
+
+export default connect(
+    mapStateToProps,
+    mapDispatchToProps
+)(RoomCalling);
